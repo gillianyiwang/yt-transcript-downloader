@@ -1,180 +1,34 @@
-from nicegui import ui
-from youtube_transcript_api import YouTubeTranscriptApi
-from pytube import YouTube
-from fpdf import FPDF
-from docx import Document
+from __future__ import annotations
 
-from urllib.parse import urlparse, parse_qs
 from typing import Optional
-from types import SimpleNamespace
+
+from docx import Document
+from fpdf import FPDF
+from nicegui import ui
+from pytube import YouTube
+from youtube_transcript_api import YouTubeTranscriptApi
+
 import io
 
-
-def extract_video_id(url: str) -> Optional[str]:
-    """Extract YouTube video ID from typical URL formats."""
-    try:
-        parsed = urlparse(url.strip())
-        if parsed.hostname in ("www.youtube.com", "youtube.com", "m.youtube.com"):
-            qs = parse_qs(parsed.query)
-            return qs.get("v", [None])[0]
-        if parsed.hostname in ("youtu.be",):
-            return parsed.path.lstrip("/")
-        # Fallback: if it looks like a bare 11-char ID
-        if len(url.strip()) == 11:
-            return url.strip()
-    except Exception:
-        return None
-    return None
-
-
-def parse_timecode(s: Optional[str]) -> Optional[float]:
-    """Parse 'mm:ss' or 'hh:mm:ss' into seconds (float). Return None if empty/invalid."""
-    if not s:
-        return None
-    s = s.strip()
-    if not s:
-        return None
-    parts = s.split(":")
-    try:
-        parts = [float(p) for p in parts]
-    except ValueError:
-        return None
-    if len(parts) == 1:
-        return parts[0]
-    elif len(parts) == 2:
-        m, sec = parts
-        return m * 60 + sec
-    elif len(parts) == 3:
-        h, m, sec = parts
-        return h * 3600 + m * 60 + sec
-    return None
-
-
-def format_timestamp(seconds: float) -> str:
-    """Format seconds as hh:mm:ss or mm:ss."""
-    total = int(round(seconds))
-    h = total // 3600
-    m = (total % 3600) // 60
-    s = total % 60
-    if h > 0:
-        return f"{h:02d}:{m:02d}:{s:02d}"
-    else:
-        return f"{m:02d}:{s:02d}"
-
-
-def estimate_file_size_bytes(text: str) -> int:
-    """Approximate file size in bytes for UTF-8 encoded text."""
-    return len(text.encode("utf-8"))
-
-
-def format_size(bytes_count: int) -> str:
-    if bytes_count < 1024:
-        return f"{bytes_count} B"
-    kb = bytes_count / 1024
-    if kb < 1024:
-        return f"{kb:.1f} KB"
-    mb = kb / 1024
-    return f"{mb:.2f} MB"
-
-
-def build_filtered_text(
-    segments,
-    start_str: str,
-    end_str: str,
-    display_mode: str,
-    include_title: bool,
-    include_description: bool,
-    video_title: Optional[str],
-    video_description: Optional[str],
-) -> str:
-    """
-    Apply time filtering, timestamp placement, and optional title/description.
-
-    display_mode options:
-      - "ts_newline"  -> [00:10] on its own line, then text
-      - "ts_before"   -> [00:10] text
-      - "ts_after"    -> text [00:10]
-      - "no_ts_lines" -> text, line-breaks kept, no timestamps
-      - "no_ts_block" -> one big block, no timestamps
-    """
-    if not segments:
-        return ""
-
-    start_sec = parse_timecode(start_str)
-    end_sec = parse_timecode(end_str)
-
-    idx_start = 0
-    idx_end = len(segments) - 1
-
-    # "closest previous timestamp" logic for start
-    if start_sec is not None:
-        for i, seg in enumerate(segments):
-            if seg["start"] >= start_sec:
-                idx_start = max(0, i - 1)
-                break
-        else:
-            idx_start = max(0, len(segments) - 2)
-
-    # "closest next timestamp" logic for end
-    if end_sec is not None:
-        last_idx = 0
-        for i, seg in enumerate(segments):
-            if seg["start"] <= end_sec:
-                last_idx = i
-        idx_end = min(len(segments) - 1, last_idx + 1)
-
-    filtered = segments[idx_start : idx_end + 1]
-    lines = []
-
-    for seg in filtered:
-        ts = format_timestamp(seg["start"])
-        text = seg["text"].replace("\n", " ").strip()
-
-        if display_mode == "ts_newline":
-            line = f"[{ts}]\n{text}"
-        elif display_mode == "ts_before":
-            line = f"[{ts}] {text}"
-        elif display_mode == "ts_after":
-            line = f"{text} [{ts}]"
-        else:
-            # no_ts_lines / no_ts_block
-            line = text
-
-        lines.append(line)
-
-    if display_mode == "no_ts_block":
-        body = " ".join(lines)
-    else:
-        body = "\n".join(lines)
-
-    header_parts = []
-    if include_title and video_title:
-        header_parts.append(video_title.strip())
-    if include_description and video_description:
-        header_parts.append(video_description.strip())
-
-    if header_parts:
-        header = "\n\n".join(header_parts)
-        if body:
-            return header + "\n\n" + body
-        else:
-            return header
-    else:
-        return body
+from transcript_utils import (
+    AppState,
+    build_filtered_text,
+    estimate_file_size_bytes,
+    extract_video_id,
+    format_size,
+    format_timestamp,
+    get_video_duration,
+    parse_timecode,
+)
 
 
 @ui.page("/")
-def main_page():
-    # state container
-    state = SimpleNamespace(
-        full_segments=[],
-        video_title=None,
-        video_description=None,
-        current_text="",
-        video_length=None,  # seconds (float) from pytube or transcript
-    )
+def main_page() -> None:
+    """Main NiceGUI page for the YouTube Transcript Downloader."""
+    # Central state container
+    state = AppState()
 
-    ui.markdown("## YouTube Transcript Exporter")
+    ui.markdown("## YouTube Transcript Downloader")
 
     with ui.card().style("max-width: 900px; margin: auto;"):
         url_input = ui.input("YouTube URL").props("clearable").style("width: 100%;")
@@ -191,21 +45,61 @@ def main_page():
                 .props("striped instant-feedback")
                 .style("width: 300px;")
             )
-
+            # overlayed percentage label bound to progress.value
             with progress:
                 progress_label = (
                     ui.label("0%")
                     .classes("text-sm text-black absolute-center")
                     .bind_text_from(
-                        progress, "value", backward=lambda v: f"{int(v*100)}%"
+                        progress, "value", backward=lambda v: f"{int(v * 100)}%"
                     )
                 )
 
         # ---------- OPTIONS UI ----------
         with ui.expansion("Options", icon="settings", value=True):
-            with ui.row():
-                start_input = ui.input("Start time").style("width: 200px;")
-                end_input = ui.input("End time").style("width: 200px;")
+            # Start/End time row with arrow buttons
+            with ui.row().classes("items-center").style("gap: 4px;"):
+                start_input = ui.input("Start time").style("width: 140px;")
+
+                # Triangle buttons
+                with ui.column().classes("items-center").style(
+                    "margin-left: -14px; gap: 2px;"
+                ):
+                    ui.button(
+                        icon="arrow_drop_up",
+                        on_click=lambda: adjust_start(+5),
+                    ).props("dense flat round").style(
+                        "padding: 0; width: 18px; height: 18px; min-height: 18px; font-size: 18px;"
+                    )
+
+                    ui.button(
+                        icon="arrow_drop_down",
+                        on_click=lambda: adjust_start(-5),
+                    ).props("dense flat round").style(
+                        "padding: 0; width: 18px; height: 18px; min-height: 18px; font-size: 18px;"
+                    )
+
+                # END TIME + vertical arrows
+                with ui.row().classes("items-center").style("gap: 4px;"):
+                    end_input = ui.input("End time").style("width: 140px;")
+
+                    # Triangle buttons
+                    with ui.column().classes("items-center").style(
+                        "margin-left: -14px; gap: 2px;"
+                    ):
+                        ui.button(
+                            icon="arrow_drop_up",
+                            on_click=lambda: adjust_end(+5),
+                        ).props("dense flat round").style(
+                            "padding: 0; width: 18px; height: 18px; min-height: 18px; font-size: 18px;"
+                        )
+
+                        ui.button(
+                            icon="arrow_drop_down",
+                            on_click=lambda: adjust_end(-5),
+                        ).props("dense flat round").style(
+                            "padding: 0; width: 18px; height: 18px; min-height: 18px; font-size: 18px;"
+                        )
 
             # Error message for time range (shown right below the inputs)
             range_error_label = ui.label("").style("font-size: 0.8rem; color: #d32f2f;")
@@ -286,13 +180,15 @@ def main_page():
 
         action_status_label = ui.label("")
 
-        # ---------- helpers ----------
+        # ---------- helpers (UI-related) ----------
 
         def set_progress(value: float) -> None:
-            """Update progress bar and percentage label (0–1 -> 0–100%)."""
-            value = max(0.0, min(1.0, float(value)))
-            progress.value = value
-            progress_label.text = f"{int(value * 100)}%"
+            """Update progress bar (0–1 -> 0–100%)."""
+            value_clamped = max(0.0, min(1.0, float(value)))
+            progress.value = value_clamped
+            # progress_label is already bound to progress.value; this is kept
+            # to preserve previous behavior exactly.
+            progress_label.text = f"{int(value_clamped * 100)}%"
 
         def reset_progress() -> None:
             set_progress(0.0)
@@ -304,51 +200,70 @@ def main_page():
             size_bytes = estimate_file_size_bytes(text)
             counts_label.text = f"Words: {words} | Characters: {chars} | Est. size: {format_size(size_bytes)}"
 
-        def get_video_duration() -> Optional[float]:
-            """Return best-guess duration in seconds (video_length or from transcript)."""
-            if state.video_length is not None:
-                return float(state.video_length)
-            if state.full_segments:
-                last = state.full_segments[-1]
-                return float(last["start"] + last.get("duration", 0))
-            return None
-
         def reset_to_full_range() -> None:
             """Set start/end inputs to the full video range 0 → duration."""
-            duration = get_video_duration()
+            duration = get_video_duration(state)
             if not duration or duration <= 0:
                 return
             start_input.value = "0"
             end_input.value = format_timestamp(duration)
             range_error_label.text = ""
 
-        def on_start_blur(e) -> None:
+        def adjust_time_input(input_component, delta_seconds: float) -> None:
+            """
+            Nudge a time input up or down by delta_seconds, clamped to [0, video_duration].
+
+            - Uses existing parse_timecode / format_timestamp behavior
+            - Clears any range error when setting a valid time
+            """
+            duration = get_video_duration(state)
+            if not duration or duration <= 0:
+                # no video loaded yet -> nothing to adjust
+                return
+
+            raw = (input_component.value or "").strip()
+            current_sec = parse_timecode(raw)
+            if current_sec is None:
+                # if the field is empty or invalid, treat as 0 before adjusting
+                current_sec = 0.0
+
+            new_sec = max(0.0, min(current_sec + delta_seconds, duration))
+            input_component.value = format_timestamp(new_sec)
+            range_error_label.text = ""
+
+        def adjust_start(delta_seconds: float) -> None:
+            adjust_time_input(start_input, delta_seconds)
+
+        def adjust_end(delta_seconds: float) -> None:
+            adjust_time_input(end_input, delta_seconds)
+
+        def on_start_blur(_event) -> None:
             """
             When the start field loses focus:
             - If both start and end are empty -> reset to full range (0 → duration)
             - If only start is empty        -> set start = 0
             """
-            duration = get_video_duration()
+            duration = get_video_duration(state)
             if not duration or duration <= 0:
                 return
 
-            s = (start_input.value or "").strip()
+            s_val = (start_input.value or "").strip()
             e_val = (end_input.value or "").strip()
 
-            if s == "" and e_val == "":
+            if s_val == "" and e_val == "":
                 # both cleared: full range
                 reset_to_full_range()
-            elif s == "":
+            elif s_val == "":
                 # only start cleared: default to 0
                 start_input.value = "0"
                 range_error_label.text = ""
 
-        def on_end_blur(e) -> None:
+        def on_end_blur(_event) -> None:
             """
             When the end field loses focus:
             - If end is empty (regardless of start) -> reset BOTH to full range 0 → duration
             """
-            duration = get_video_duration()
+            duration = get_video_duration(state)
             if not duration or duration <= 0:
                 return
 
@@ -370,14 +285,14 @@ def main_page():
             - Inputs are updated to normalized values
             - Errors shown next to time inputs (range_error_label)
             """
-            duration = get_video_duration()
+            duration = get_video_duration(state)
             if duration is None or duration <= 0:
                 if not state.full_segments:
                     range_error_label.text = (
                         "Transcript not loaded; please fetch transcript first."
                     )
                     return None
-                duration = get_video_duration()
+                duration = get_video_duration(state)
 
             raw_start = (start_input.value or "").strip()
             raw_end = (end_input.value or "").strip()
@@ -457,6 +372,7 @@ def main_page():
         # ---------- button handlers ----------
 
         async def fetch_transcript() -> None:
+            """Fetch video metadata, transcript, and initialize the preview."""
             # Progress is ONLY for fetching
             reset_progress()
             action_status_label.text = ""
@@ -488,7 +404,7 @@ def main_page():
                 fetch_status_label.text = "Warning: could not fetch video info."
 
             # Update hint and default start/end once we know duration
-            duration = get_video_duration()
+            duration = get_video_duration(state)
             if duration is not None and duration > 0:
                 end_ts = format_timestamp(duration)
                 range_hint_label.text = f"Default range is 0 to {end_ts}. "
@@ -581,7 +497,7 @@ def main_page():
             action_status_label.text = f"Downloaded {filename}."
 
         def make_export_handler(kind: str):
-            async def handler():
+            async def handler() -> None:
                 await run_export(kind)
 
             return handler
@@ -602,4 +518,4 @@ def main_page():
 
 
 if __name__ in {"__main__", "__mp_main__"}:
-    ui.run(title="YouTube Transcript Exporter", reload=False)
+    ui.run(title="YouTube Transcript Downloader", reload=False)
