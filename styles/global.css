@@ -7,96 +7,122 @@ body {
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
 }
 
-
 /* ---- Card polish ---- */
 .q-card {
-    border-radius: 18px;
+  border-radius: 18px;
 }
 
 /* ---- Inputs / selects / textareas ---- */
 
-/* Rounded corners on outlined fields */
-.q-field--outlined .q-field__control {
-    border-radius: 10px;
+/* Rounded corners for outlined fields */
+.q-field.q-field--outlined .q-field__control {
+  border-radius: 10px;
 }
 
 /* Base quiet border color */
 .q-field--outlined .q-field__control:before {
-    border-color: #e5e7eb;
+  border-color: #e5e7eb;
 }
 
 /* Hover border: soft red */
 .q-field--outlined:hover .q-field__control:before {
-    border-color: #fca5a5;
+  border-color: #fca5a5;
 }
 
 /* Focus border & underline: soft YouTube red */
 .q-field--focused .q-field__control:before,
 .q-field--focused .q-field__control:after {
-    border-color: #e57373 !important;
+  border-color: #e57373 !important;
 }
 
 /* Focused label color */
 .q-field--focused .q-field__label {
-    color: #e57373 !important;
+  color: #e57373 !important;
 }
 
 /* Remove native blue outline / glow */
 .q-field input:focus,
 .q-field textarea:focus {
-    outline: none !important;
-    box-shadow: none !important;
+  outline: none !important;
+  box-shadow: none !important;
 }
+
+/* URL input: taller + vertically centered text */
+.url-input .q-field__control {
+  min-height: 44px !important;
+  align-items: center !important;
+}
+
+.url-input .q-field__native {
+  padding-top: 10px !important;
+  padding-bottom: 10px !important;
+  padding-left: 12px !important;
+  padding-right: 12px !important;
+}
+
+/* Time inputs: slightly shorter but centered */
+.time-input .q-field__control {
+  min-height: 38px !important;
+  align-items: center !important;
+}
+
+.time-input .q-field__native {
+  padding-top: 6px !important;
+  padding-bottom: 6px !important;
+  padding-left: 10px !important;
+  padding-right: 10px !important;
+}
+
 
 /* ---- Buttons ---- */
 
 /* Slightly pill-shaped, no ALL CAPS */
 .q-btn {
-    text-transform: none;
-    border-radius: 999px;
+  text-transform: none;
+  border-radius: 999px;
 }
 
 /* Outline buttons: softer red border */
 .q-btn--outline {
-    border-color: #fecaca;
+  border-color: #fecaca;
 }
 
 /* Icons inside buttons: default to soft red */
 .q-btn .q-icon {
-    color: #e57373 !important;
+  color: #e57373 !important;
 }
 
 /* White icons when button background is red (YouTube style primary CTAs) */
 .q-btn.bg-red-5 .q-icon,
 .q-btn.bg-red .q-icon {
-    color: #ffffff !important;
+  color: #ffffff !important;
 }
 
 /* ---- Expansion panel ---- */
 
 .q-expansion-item__container {
-    border-radius: 12px;
-    background: #f9fafb;
+  border-radius: 12px;
+  background: #f9fafb;
 }
 
 .q-expansion-item__container .q-item {
-    padding-top: 6px;
-    padding-bottom: 6px;
+  padding-top: 6px;
+  padding-bottom: 6px;
 }
 
 /* ---- Textarea scrollbar ---- */
 
 textarea::-webkit-scrollbar {
-    width: 6px;
+  width: 6px;
 }
 
 textarea::-webkit-scrollbar-thumb {
-    background-color: #fecaca;
-    border-radius: 999px;
+  background-color: #fecaca;
+  border-radius: 999px;
 }
 
 textarea::-webkit-scrollbar-track {
-    background: transparent;
+  background: transparent;
 }
 
 /* ---------------------------------------
@@ -105,38 +131,53 @@ Checkbox styling
 
 /* Base border for checkbox boxes */
 .q-checkbox__bg {
-    border: 2px solid #6e6e6e !important;
+  border: 2px solid #6e6e6e !important;
 }
 
 /* Hover border */
 .q-checkbox:hover .q-checkbox__bg {
-    border-color: #6e6e6e !important;
+  border-color: #6e6e6e !important;
 }
 
 /* Focused checkbox border */
 .q-checkbox.q-checkbox--focused .q-checkbox__bg {
-    border-color: #6e6e6e !important;
+  border-color: #6e6e6e !important;
 }
 
 /* Checked background color (soft red) */
 .q-checkbox__inner--truthy .q-checkbox__bg {
-    background: #e57373 !important;
+  background: #e57373 !important;
 }
 
 /* Checked checkmark color: keep default white ✓ */
 .q-checkbox__inner--truthy svg {
-    stroke: white !important;
-    fill: none !important;
+  stroke: white !important;
+  fill: none !important;
 }
 
 /* ---------------------------------------
 Timestamp adjustment arrows
-(small flat round buttons next to time inputs)
 -----------------------------------------*/
 
 /* Make the up/down arrow icons gray instead of red */
 .q-btn.q-btn--flat.q-btn--round .q-icon {
-    color: #6e6e6e !important;
+  color: #6e6e6e !important;
+}
+
+/* Arrow column: vertically center the pair of buttons
+   and tighten them up a bit */
+.time-arrows {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  row-gap: 2px;
+}
+
+.time-arrows .q-btn {
+  width: 16px !important;
+  height: 14px !important;
+  min-height: 14px !important;
+  padding: 0 !important;
 }
 
 /* Center the whole app on the page */
@@ -153,6 +194,7 @@ Timestamp adjustment arrows
   width: 100%;
   max-width: 960px;          /* same width for header and card */
 }
+
 /* Shared row helpers */
 .fetch-row,
 .export-row {
@@ -184,6 +226,7 @@ Timestamp adjustment arrows
     flex: 1 1 calc(50% - 8px);   /* roughly two per row */
   }
 }
+
 /* -----------------------------
    Prevent overflow in "Configure transcript options"
    on small screens

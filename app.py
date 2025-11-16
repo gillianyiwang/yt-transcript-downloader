@@ -80,8 +80,10 @@ def main_page() -> None:
                         placeholder="https://www.youtube.com/watch?v=...",
                     )
                     .props("clearable outlined")
+                    .classes("url-input")
                     .style("width: 100%; margin-top: 4px;")
                 )
+
 
                 with ui.column().classes("w-full").style(
                     "margin-top: 10px; margin-bottom: 8px;"
@@ -195,8 +197,8 @@ def main_page() -> None:
                                 )
 
                                 # Triangle buttons
-                                with ui.column().classes("items-center").style(
-                                    "margin-left: -10px; gap: 3px;"
+                                with ui.column().classes("items-center time-arrows").style(
+                                    "margin-left: -6px; margin-top: -12px; gap: 2px;"
                                 ):
                                     ui.button(
                                         icon="arrow_drop_up",
@@ -226,12 +228,12 @@ def main_page() -> None:
                                 )
 
                                 # Triangle buttons
-                                with ui.column().classes("items-center").style(
-                                    "margin-left: -10px; gap: 3px;"
+                                with ui.column().classes("items-center time-arrows").style(
+                                    "margin-left: -6px; margin-top: -12px; gap: 2px;"
                                 ):
                                     ui.button(
                                         icon="arrow_drop_up",
-                                        on_click=lambda: adjust_end(+5),
+                                        on_click=lambda: adjust_start(+5),
                                     ).props("dense flat round").style(
                                         "padding: 0; width: 16px; height: 14px; "
                                         "min-height: 14px; font-size: 16px;"
@@ -239,7 +241,7 @@ def main_page() -> None:
 
                                     ui.button(
                                         icon="arrow_drop_down",
-                                        on_click=lambda: adjust_end(-5),
+                                        on_click=lambda: adjust_start(-5),
                                     ).props("dense flat round").style(
                                         "padding: 0; width: 16px; height: 14px; "
                                         "min-height: 14px; font-size: 16px;"
