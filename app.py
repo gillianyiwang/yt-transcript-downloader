@@ -6,7 +6,7 @@ from docx import Document
 from fpdf import FPDF
 from nicegui import ui
 from pathlib import Path
-from pytube import YouTube
+from pytubefix import YouTube
 from youtube_transcript_api import YouTubeTranscriptApi
 
 
@@ -21,6 +21,7 @@ from transcript_utils import (
     format_timestamp,
     get_video_duration,
     parse_timecode,
+    sanitize_filename,
 )
 
 YOUTUBE_RED = "red-5"
@@ -549,6 +550,11 @@ def main_page() -> None:
                         state.video_length = float(getattr(yt, "length", None) or 0.0)
                         if state.video_length <= 0:
                             state.video_length = None
+                            # NEW: set default output name to the video title
+                        if state.video_title:
+                            file_title_input.value = sanitize_filename(state.video_title)
+                        else:
+                            file_title_input.value = "transcript"
                     except Exception:
                         state.video_title = None
                         state.video_description = None
@@ -609,8 +615,14 @@ def main_page() -> None:
                         )
                         return
 
-                    base_name = file_title_input.value.strip() or "transcript"
-                    action_status_label.text = f"Exporting as {kind.upper()}..."
+                    raw_name = (file_title_input.value or "").strip()
+
+                    if raw_name:
+                        base_name = sanitize_filename(raw_name)
+                    elif state.video_title and state.video_title.strip():
+                        base_name = sanitize_filename(state.video_title.strip())
+                    else:
+                        base_name = "transcript"
 
                     if kind == "txt":
                         data = text.encode("utf-8")

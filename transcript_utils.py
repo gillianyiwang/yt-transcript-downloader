@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import List, Dict, Optional, Tuple
+from typing import List, Dict, Optional
 from urllib.parse import urlparse, parse_qs
+
+import re
 
 
 # ---------- Data model ----------
@@ -188,3 +190,21 @@ def build_filtered_text(
             return header + "\n\n" + body
         return header
     return body
+
+
+def sanitize_filename(name: str) -> str:
+    """
+    Remove illegal filename characters across macOS/Windows/Linux:
+    \ / : * ? " < > |
+    Also collapse spaces to underscores.
+    """
+    # Strip illegal characters
+    name = re.sub(r'[\\/:*?"<>|]', "", name)
+
+    # Replace whitespace runs with "_"
+    name = re.sub(r"\s+", "_", name)
+
+    # Remove leading/trailing underscores
+    name = name.strip("_")
+
+    return name or "transcript"
