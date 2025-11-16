@@ -26,6 +26,9 @@ from transcript_utils import (
 
 YOUTUBE_RED = "red-5"
 GLOBAL_CSS = Path("styles/global.css").read_text(encoding="utf-8")
+BASE_DIR = Path(__file__).resolve().parent
+ICON_PATH = BASE_DIR / "images" / "icon.png"
+FONT_PATH = BASE_DIR / "fonts" / "NotoSans.ttf"
 
 
 @ui.page("/")
@@ -49,7 +52,7 @@ def main_page() -> None:
             with ui.row().classes("items-center justify-center gap-3").style(
                 "margin-bottom: 16px;"
             ):
-                ui.image("images/icon.png").style(
+                ui.image(ICON_PATH).style(
                     "width: 40px; height: 40px; border-radius: 5px; "
                     "box-shadow: 0 4px 10px rgba(0,0,0,0.15);"
                 )
@@ -83,7 +86,6 @@ def main_page() -> None:
                     .classes("url-input")
                     .style("width: 100%; margin-top: 4px;")
                 )
-
 
                 with ui.column().classes("w-full").style(
                     "margin-top: 10px; margin-bottom: 8px;"
@@ -197,7 +199,9 @@ def main_page() -> None:
                                 )
 
                                 # Triangle buttons
-                                with ui.column().classes("items-center time-arrows").style(
+                                with ui.column().classes(
+                                    "items-center time-arrows"
+                                ).style(
                                     "margin-left: -6px; margin-top: -12px; gap: 2px;"
                                 ):
                                     ui.button(
@@ -205,7 +209,8 @@ def main_page() -> None:
                                         on_click=lambda: adjust_start(+5),
                                     ).props("dense flat round").style(
                                         "padding: 0; width: 16px; height: 14px; "
-                                        "min-height: 14px; font-size: 16px;"
+                                        "min-height: 14px; font-size: 16px; "
+                                        "box-shadow: none; outline: none;"
                                     )
 
                                     ui.button(
@@ -213,7 +218,8 @@ def main_page() -> None:
                                         on_click=lambda: adjust_start(-5),
                                     ).props("dense flat round").style(
                                         "padding: 0; width: 16px; height: 14px; "
-                                        "min-height: 14px; font-size: 16px;"
+                                        "min-height: 14px; font-size: 16px; "
+                                        "box-shadow: none; outline: none;"
                                     )
 
                         # END
@@ -228,23 +234,27 @@ def main_page() -> None:
                                 )
 
                                 # Triangle buttons
-                                with ui.column().classes("items-center time-arrows").style(
+                                with ui.column().classes(
+                                    "items-center time-arrows"
+                                ).style(
                                     "margin-left: -6px; margin-top: -12px; gap: 2px;"
                                 ):
                                     ui.button(
                                         icon="arrow_drop_up",
-                                        on_click=lambda: adjust_start(+5),
+                                        on_click=lambda: adjust_end(+5),
                                     ).props("dense flat round").style(
                                         "padding: 0; width: 16px; height: 14px; "
-                                        "min-height: 14px; font-size: 16px;"
+                                        "min-height: 14px; font-size: 16px; "
+                                        "box-shadow: none; outline: none;"
                                     )
 
                                     ui.button(
                                         icon="arrow_drop_down",
-                                        on_click=lambda: adjust_start(-5),
+                                        on_click=lambda: adjust_end(-5),
                                     ).props("dense flat round").style(
                                         "padding: 0; width: 16px; height: 14px; "
-                                        "min-height: 14px; font-size: 16px;"
+                                        "min-height: 14px; font-size: 16px; "
+                                        "box-shadow: none; outline: none;"
                                     )
 
                     # Error + hint
@@ -732,13 +742,35 @@ def main_page() -> None:
                     elif kind == "pdf":
                         pdf = FPDF()
                         pdf.set_auto_page_break(auto=True, margin=15)
+                        pdf.set_margins(15, 15, 15)
                         pdf.add_page()
-                        pdf.set_font("Arial", size=11)
-                        for line in text.split("\n"):
-                            pdf.multi_cell(0, 5, line)
-                        buf = io.BytesIO()
-                        pdf.output(buf)
-                        data = buf.getvalue()
+
+                        # Try to use Unicode TTF; fall back to Helvetica if not available
+                        try:
+                            if FONT_PATH.is_file():
+                                pdf.add_font("NotoSans", "", str(FONT_PATH))
+                                pdf.set_font("NotoSans", size=11)
+                            else:
+                                pdf.set_font("Helvetica", size=11)
+                        except Exception:
+                            pdf.set_font("Helvetica", size=11)
+
+                        line_height = pdf.font_size * 1.5
+                        effective_width = pdf.w - pdf.l_margin - pdf.r_margin
+
+                        # Normalize line endings
+                        cleaned_text = text.replace("\r\n", "\n").replace("\r", "\n")
+
+                        # Let FPDF handle wrapping & page breaks in one go
+                        pdf.multi_cell(effective_width, line_height, cleaned_text)
+
+                        raw_pdf = pdf.output()
+
+                        if isinstance(raw_pdf, (bytes, bytearray)):
+                            data = bytes(raw_pdf)
+                        else:
+                            data = str(raw_pdf).encode("latin-1")
+
                         filename = base_name + ".pdf"
                     else:
                         action_status_label.text = "Unknown export type."
@@ -771,6 +803,6 @@ def main_page() -> None:
 if __name__ in {"__main__", "__mp_main__"}:
     ui.run(
         title="YouTube Transcript Downloader",
-        favicon="images/icon.png",
+        favicon=ICON_PATH,
         reload=False,
     )
