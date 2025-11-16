@@ -1,8 +1,12 @@
 /* ---- global.css ---- */
 body {
-    background: radial-gradient(circle at top, #fee2e2 0, #f9fafb 45%, #e5e7eb 100%);
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+  background: radial-gradient(circle at top center, #fee2e2 0, #f9fafb 45%, #e5e7eb 100%);
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+  background-color: #f9fafb; /* fallback */
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
 }
+
 
 /* ---- Card polish ---- */
 .q-card {
@@ -135,3 +139,76 @@ Timestamp adjustment arrows
     color: #6e6e6e !important;
 }
 
+/* Center the whole app on the page */
+.app-shell {
+  min-height: 100vh;
+  padding: 32px 16px;
+  display: flex;
+  justify-content: center;   /* center horizontally */
+  align-items: flex-start;   /* content starts near the top */
+}
+
+/* Constrain content width and center card + header */
+.app-inner {
+  width: 100%;
+  max-width: 960px;          /* same width for header and card */
+}
+/* Shared row helpers */
+.fetch-row,
+.export-row {
+  width: 100%;
+}
+
+/* Mobile layout */
+@media (max-width: 768px) {
+  /* Fetch row: button above progress bar, full width */
+  .fetch-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .fetch-row .q-btn,
+  .fetch-row .q-linear-progress {
+    width: 100%;
+  }
+
+  /* Export row: wrap nicely into 2 columns of buttons */
+  .export-row {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 8px;
+  }
+
+  .export-row .q-btn {
+    flex: 1 1 calc(50% - 8px);   /* roughly two per row */
+  }
+}
+/* -----------------------------
+   Prevent overflow in "Configure transcript options"
+   on small screens
+------------------------------*/
+@media (max-width: 768px) {
+
+  /* Time row: stack Start/End vertically */
+  .time-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  /* Make the time inputs full-width on mobile */
+  .time-input {
+    width: 100% !important;  /* override inline width: 140px */
+  }
+
+  /* Make big select / file name input full-width too */
+  .full-width-mobile {
+    width: 100% !important;  /* override inline widths 360px / 260px */
+  }
+
+  /* Optional: keep the small arrow buttons aligned nicely */
+  .time-row .q-btn.q-btn--flat.q-btn--round {
+    margin-right: 4px;
+  }
+}

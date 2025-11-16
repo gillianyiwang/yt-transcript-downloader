@@ -36,21 +36,23 @@ def main_page() -> None:
     # Central state container
     state = AppState()
 
-    # Outer full-page container
+    # OUTER SHELL: centers everything
     with ui.column().classes(
         "items-center justify-start w-full"
     ).style("min-height: 100vh; padding: 32px 16px;"):
 
-        # Add a max-width centered wrapper
-        with ui.column().classes("w-full items-center").style("max-width: 960px;"):
+        # INNER WRAPPER: same width for header + card
+        with ui.column().classes("app-inner items-center w-full"):
 
-            # Header with icon + title
-            with ui.row().classes("items-center gap-3").style("margin-bottom: 16px;"):
+            # Header with icon + centered title
+            with ui.row().classes("items-center justify-center gap-3").style(
+                "margin-bottom: 16px;"
+            ):
                 ui.image("images/icon.png").style(
                     "width: 40px; height: 40px; border-radius: 12px; "
                     "box-shadow: 0 4px 10px rgba(0,0,0,0.15);"
                 )
-                with ui.column().classes("gap-0"):
+                with ui.column().classes("gap-0 items-center"):
                     ui.label("YouTube Transcript Downloader").classes(
                         "text-2xl font-semibold text-gray-900"
                     )
@@ -58,7 +60,7 @@ def main_page() -> None:
                         "Extract, trim, and export YouTube transcripts with ease."
                     ).classes("text-sm text-gray-600")
 
-            # Main card
+            # Main card: full width of app-inner
             with ui.card().classes("w-full").style(
                 "max-width: 960px; "
                 "border-radius: 18px; "
@@ -83,8 +85,8 @@ def main_page() -> None:
                 with ui.column().classes("w-full").style(
                     "margin-top: 10px; margin-bottom: 8px;"
                 ):
-                    # First row: fetch button + progress bar side by side
-                    with ui.row().classes("items-center gap-3 justify-between"):
+                    # First row: fetch button + progress bar
+                    with ui.row().classes("items-center gap-3 justify-between fetch-row"):
                         fetch_button = ui.button(
                             "Fetch transcript",
                             icon="download",
@@ -97,8 +99,8 @@ def main_page() -> None:
                                 ui.linear_progress(
                                     value=0,
                                     show_value=False,
-                                    size="20px",
-                                    color=YOUTUBE_RED,  # <-- make it red
+                                    size="30px",
+                                    color=YOUTUBE_RED,
                                 )
                                 .props("striped instant-feedback")
                                 .style(
@@ -135,7 +137,7 @@ def main_page() -> None:
                     value=True,
                 ).props("dense expand-icon=keyboard_arrow_down"):
                     # Start/End time row with arrow buttons
-                    with ui.row().classes("items-center").style(
+                    with ui.row().classes("items-center time-row").style(
                         "gap: 12px; margin-top: 4px;"
                     ):
                         # START
@@ -145,6 +147,7 @@ def main_page() -> None:
                                 start_input = (
                                     ui.input("", placeholder="e.g. 0:30")
                                     .props("outlined dense")
+                                    .classes("time-input")
                                     .style("width: 140px;")
                                 )
 
@@ -175,6 +178,7 @@ def main_page() -> None:
                                 end_input = (
                                     ui.input("", placeholder="e.g. 12:57")
                                     .props("outlined dense")
+                                    .classes("time-input")
                                     .style("width: 140px;")
                                 )
 
@@ -221,6 +225,7 @@ def main_page() -> None:
                                 value="ts_before",
                             )
                             .props("outlined dense")
+                            .classes("full-width-mobile")
                             .style("width: 360px;")
                         )
 
@@ -238,6 +243,7 @@ def main_page() -> None:
                             value="transcript",
                         )
                         .props("outlined dense")
+                        .classes("full-width-mobile")
                         .style("width: 260px; margin-top: 10px;")
                     )
 
@@ -280,7 +286,7 @@ def main_page() -> None:
 
                 ui.label("4. Copy or export").classes("text-sm font-medium text-gray-800")
 
-                with ui.row().classes("items-center gap-2").style("margin-top: 6px;"):
+                with ui.row().classes("items-center gap-2 export-row").style("margin-top: 6px;"):
                     copy_button = ui.button(
                         "Copy to clipboard",
                         icon="content_copy",
