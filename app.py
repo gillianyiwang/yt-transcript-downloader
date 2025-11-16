@@ -50,7 +50,7 @@ def main_page() -> None:
                 "margin-bottom: 16px;"
             ):
                 ui.image("images/icon.png").style(
-                    "width: 40px; height: 40px; border-radius: 12px; "
+                    "width: 40px; height: 40px; border-radius: 5px; "
                     "box-shadow: 0 4px 10px rgba(0,0,0,0.15);"
                 )
                 with ui.column().classes("gap-0 items-center"):
