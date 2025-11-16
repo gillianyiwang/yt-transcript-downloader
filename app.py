@@ -38,9 +38,9 @@ def main_page() -> None:
     state = AppState()
 
     # OUTER SHELL: centers everything
-    with ui.column().classes(
-        "items-center justify-start w-full"
-    ).style("min-height: 100vh; padding: 32px 16px;"):
+    with ui.column().classes("items-center justify-start w-full").style(
+        "min-height: 100vh; padding: 32px 16px;"
+    ):
 
         # INNER WRAPPER: same width for header + card
         with ui.column().classes("app-inner items-center w-full"):
@@ -87,7 +87,9 @@ def main_page() -> None:
                     "margin-top: 10px; margin-bottom: 8px;"
                 ):
                     # First row: fetch button + progress bar
-                    with ui.row().classes("items-center gap-3 justify-between fetch-row"):
+                    with ui.row().classes(
+                        "items-center gap-3 justify-between fetch-row"
+                    ):
                         fetch_button = ui.button(
                             "Fetch transcript",
                             icon="download",
@@ -124,6 +126,24 @@ def main_page() -> None:
 
                     # Second row: status text under button + progress
                     fetch_status_label = ui.label("").classes("text-xs text-gray-600")
+
+                # --- Video info (title + thumbnail), shown after successful fetch ---
+                video_info_row = (
+                    ui.row()
+                    .classes("items-start gap-3")
+                    .style("margin-top: 8px; margin-bottom: 4px;")
+                )
+                video_info_row.visible = False  # hidden until we have data
+
+                with video_info_row:
+                    thumbnail_image = ui.image().style(
+                        "width: 120px; height: 68px; border-radius: 12px; "
+                        "box-shadow: 0 6px 16px rgba(15,23,42,0.25); "
+                        "object-fit: cover;"
+                    )
+                    video_title_label = ui.label("").classes(
+                        "text-sm font-medium text-gray-900"
+                    )
 
                 ui.separator().props("inset").style("margin: 12px 0 16px 0;")
 
@@ -285,9 +305,13 @@ def main_page() -> None:
 
                 ui.separator().props("inset").style("margin: 16px 0 12px 0;")
 
-                ui.label("4. Copy or export").classes("text-sm font-medium text-gray-800")
+                ui.label("4. Copy or export").classes(
+                    "text-sm font-medium text-gray-800"
+                )
 
-                with ui.row().classes("items-center gap-2 export-row").style("margin-top: 6px;"):
+                with ui.row().classes("items-center gap-2 export-row").style(
+                    "margin-top: 6px;"
+                ):
                     copy_button = ui.button(
                         "Copy to clipboard",
                         icon="content_copy",
@@ -308,7 +332,9 @@ def main_page() -> None:
                     ).props("unelevated rounded")
 
                 action_status_label = (
-                    ui.label("").classes("text-xs text-gray-600").style("margin-top: 4px;")
+                    ui.label("")
+                    .classes("text-xs text-gray-600")
+                    .style("margin-top: 4px;")
                 )
 
                 # JS handler to actually copy the textarea content in the browser
@@ -482,7 +508,9 @@ def main_page() -> None:
 
                     # Enforce end > start
                     if end_sec <= start_sec:
-                        range_error_label.text = "End time must be greater than start time."
+                        range_error_label.text = (
+                            "End time must be greater than start time."
+                        )
                         return None
 
                     # Update inputs to normalized values (make defaults explicit)
@@ -550,16 +578,39 @@ def main_page() -> None:
                         state.video_length = float(getattr(yt, "length", None) or 0.0)
                         if state.video_length <= 0:
                             state.video_length = None
-                            # NEW: set default output name to the video title
+
+                        # NEW: set default output name to the video title (sanitized)
                         if state.video_title:
-                            file_title_input.value = sanitize_filename(state.video_title)
+                            file_title_input.value = sanitize_filename(
+                                state.video_title
+                            )
                         else:
                             file_title_input.value = "transcript"
+
+                        # NEW: update title + thumbnail UI
+                        video_title_label.text = (
+                            state.video_title or "Title unavailable"
+                        )
+
+                        thumb_url = getattr(yt, "thumbnail_url", None)
+                        if thumb_url:
+                            thumbnail_image.set_source(thumb_url)
+                        else:
+                            # clear thumbnail if not available
+                            thumbnail_image.set_source("")
+
+                        video_info_row.visible = True
+
                     except Exception:
                         state.video_title = None
                         state.video_description = None
                         state.video_length = None
                         fetch_status_label.text = "Warning: could not fetch video info."
+
+                        # Hide and clear video info on error
+                        video_info_row.visible = False
+                        video_title_label.text = ""
+                        thumbnail_image.set_source("")
 
                     # Update hint and default start/end once we know duration
                     duration = get_video_duration(state)
@@ -591,6 +642,12 @@ def main_page() -> None:
                         )
                         state.full_segments = []
                         reset_progress()
+
+                        # Hide video info to avoid stale data on failure
+                        video_info_row.visible = False
+                        video_title_label.text = ""
+                        thumbnail_image.set_source("")
+
                         return
 
                     fetch_status_label.text = "Transcript fetched."
