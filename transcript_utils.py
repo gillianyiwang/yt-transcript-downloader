@@ -20,6 +20,7 @@ class AppState:
     current_text: str = ""
     # Seconds (float) from pytube; may be None if unavailable
     video_length: Optional[float] = None
+    video_url: Optional[str] = None
 
 
 # ---------- URL & time utilities ----------

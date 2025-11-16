@@ -136,14 +136,36 @@ def main_page() -> None:
                 video_info_row.visible = False  # hidden until we have data
 
                 with video_info_row:
-                    thumbnail_image = ui.image().style(
-                        "width: 120px; height: 68px; border-radius: 12px; "
-                        "box-shadow: 0 6px 16px rgba(15,23,42,0.25); "
-                        "object-fit: cover;"
+                    thumbnail_image = (
+                        ui.image()
+                        .style(
+                            "width: 120px; height: 68px; border-radius: 12px; "
+                            "box-shadow: 0 6px 16px rgba(15,23,42,0.25); "
+                            "object-fit: cover;"
+                        )
+                        .classes("cursor-pointer")
                     )
+
                     video_title_label = ui.label("").classes(
-                        "text-sm font-medium text-gray-900"
+                        "text-sm cursor-pointer text-blue-600 hover:underline"
                     )
+
+                # Make both thumbnail and title clickable
+                thumbnail_image.on(
+                    "click",
+                    lambda e: state.video_url
+                    and ui.run_javascript(
+                        f'window.open("{state.video_url}", "_blank")'
+                    ),
+                )
+
+                video_title_label.on(
+                    "click",
+                    lambda e: state.video_url
+                    and ui.run_javascript(
+                        f'window.open("{state.video_url}", "_blank")'
+                    ),
+                )
 
                 ui.separator().props("inset").style("margin: 12px 0 16px 0;")
 
@@ -568,6 +590,8 @@ def main_page() -> None:
                         reset_progress()
                         return
 
+                    state.video_url = f"https://www.youtube.com/watch?v={video_id}"
+
                     # fetch video metadata (title, description, duration)
                     fetch_status_label.text = "Fetching video info..."
                     set_progress(0.3)
@@ -587,9 +611,9 @@ def main_page() -> None:
                         else:
                             file_title_input.value = "transcript"
 
-                        # NEW: update title + thumbnail UI
+                        # update title + thumbnail
                         video_title_label.text = (
-                            state.video_title or "Title unavailable"
+                            state.video_title + " ⇱" or "Title unavailable"
                         )
 
                         thumb_url = getattr(yt, "thumbnail_url", None)
@@ -605,6 +629,7 @@ def main_page() -> None:
                         state.video_title = None
                         state.video_description = None
                         state.video_length = None
+                        state.video_url = None
                         fetch_status_label.text = "Warning: could not fetch video info."
 
                         # Hide and clear video info on error
@@ -647,6 +672,7 @@ def main_page() -> None:
                         video_info_row.visible = False
                         video_title_label.text = ""
                         thumbnail_image.set_source("")
+                        state.video_url = None
 
                         return
 
