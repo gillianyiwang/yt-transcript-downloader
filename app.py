@@ -9,7 +9,6 @@ from pathlib import Path
 from pytubefix import YouTube
 from youtube_transcript_api import YouTubeTranscriptApi
 
-
 import io
 
 from transcript_utils import (
@@ -28,7 +27,10 @@ YOUTUBE_RED = "red-5"
 GLOBAL_CSS = Path("styles/global.css").read_text(encoding="utf-8")
 BASE_DIR = Path(__file__).resolve().parent
 ICON_PATH = BASE_DIR / "images" / "icon.png"
-FONT_PATH = BASE_DIR / "fonts" / "NotoSans.ttf"
+
+# Directory for fonts; we will use a single CJK-capable font for PDFs
+FONT_DIR = BASE_DIR / "fonts"
+CJK_FONT_PATH = FONT_DIR / "NotoSansCJK-VF.ttf.ttc"
 
 
 @ui.page("/")
@@ -291,6 +293,18 @@ def main_page() -> None:
                             include_description_checkbox = ui.checkbox(
                                 "Include YouTube description in output", value=False
                             )
+
+                    # Transcript language selector (YouTube transcript tracks)
+                    transcript_language_select = (
+                        ui.select(
+                            label="Transcript language",
+                            options={},  # will be populated after fetch
+                            value=None,
+                        )
+                        .props("outlined dense")
+                        .classes("full-width-mobile")
+                        .style("width: 260px; margin-top: 10px;")
+                    )
 
                     file_title_input = (
                         ui.input(
@@ -585,6 +599,71 @@ def main_page() -> None:
                     refresh_counts()
 
                 # ---------- button handlers ----------
+                async def load_transcript_for_language(
+                    video_id: str, language_code: str
+                ) -> bool:
+                    """
+                    Load transcript segments for the given language_code into state.full_segments.
+
+                    Normalizes to a list of dicts like:
+                    [{"text": "...", "start": 0.0, "duration": 4.5}, ...]
+                    so build_filtered_text can keep using seg["start"], seg["text"], etc.
+
+                    Returns True on success, False on failure.
+                    """
+                    try:
+                        api = YouTubeTranscriptApi()
+                        transcript_list = api.list(video_id)  # NEW API
+
+                        # Pick best transcript for that language (manual > auto)
+                        transcript = transcript_list.find_transcript([language_code])
+
+                        fetched = transcript.fetch()
+
+                        # --- Normalize to list[dict] for compatibility ---
+                        segments: list[dict] = []
+
+                        # If this object has to_raw_data (some versions do), use it directly
+                        if hasattr(fetched, "to_raw_data"):
+                            segments = fetched.to_raw_data()
+                        else:
+                            # Otherwise it's iterable of snippet objects
+                            for snippet in fetched:
+                                if hasattr(snippet, "to_dict"):
+                                    seg_dict = snippet.to_dict()
+                                else:
+                                    # Fallback: build dict manually from attributes
+                                    seg_dict = {
+                                        "text": getattr(snippet, "text", ""),
+                                        "start": float(getattr(snippet, "start", 0.0)),
+                                        "duration": float(
+                                            getattr(snippet, "duration", 0.0)
+                                        ),
+                                    }
+                                segments.append(seg_dict)
+
+                        # Optional: tiny debug peek
+                        if segments:
+                            first = segments[0]
+                            print(
+                                "[load_transcript_for_language] First segment normalized:",
+                                {
+                                    k: first.get(k)
+                                    for k in ("start", "duration", "text")
+                                },
+                            )
+
+                        state.full_segments = segments
+                        state.transcript_lang_code = language_code
+                        return True
+
+                    except Exception as e:
+                        print(
+                            f"[load_transcript_for_language] Could not load transcript "
+                            f"for {video_id} lang={language_code}: {e}"
+                        )
+                        state.full_segments = []
+                        return False
 
                 async def fetch_transcript() -> None:
                     """Fetch video metadata, transcript, and initialize the preview."""
@@ -664,18 +743,66 @@ def main_page() -> None:
                         start_input.value = ""
                         end_input.value = ""
 
-                    # fetch transcript
-                    fetch_status_label.text = "Fetching transcript..."
+                    # fetch transcript options (languages) and default transcript
+                    fetch_status_label.text = "Finding available transcripts..."
                     set_progress(0.6)
                     try:
                         api = YouTubeTranscriptApi()
-                        fetched = api.fetch(video_id)
-                        state.full_segments = fetched.to_raw_data()
-                    except Exception:
-                        # generic, user-friendly message instead of long library error
+                        transcript_list = api.list(video_id)
+
+                        # Build language options (deduplicated by language_code)
+                        lang_options: dict[str, str] = {}
+                        default_code: Optional[str] = None
+
+                        print("[fetch_transcript] Available transcripts:")
+                        for t in transcript_list:
+                            # t is a Transcript object
+                            code = (
+                                t.language_code
+                            )  # e.g. "en", "zh-Hant", "zh-Hans", "ja"
+                            label = t.language  # human-readable name from YouTube
+
+                            if t.is_generated:
+                                label += " (auto-generated)"
+
+                            label_with_code = f"{label} [{code}]"
+                            print(f"  - {label_with_code}")
+
+                            # Deduplicate by language_code
+                            if code not in lang_options:
+                                lang_options[code] = label_with_code
+
+                            # First transcript as fallback default
+                            if default_code is None:
+                                default_code = code
+                            # Prefer English if present
+                            if code.startswith("en"):
+                                default_code = code
+
+                        if not lang_options:
+                            raise RuntimeError("No transcripts available")
+
+                        # Populate the <select> with options
+                        transcript_language_select.options = lang_options
+
+                        # Choose default language code
+                        if default_code is None:
+                            default_code = next(iter(lang_options.keys()))
+                        transcript_language_select.value = default_code
+
+                        # Load the default transcript into state.full_segments
+                        ok = await load_transcript_for_language(video_id, default_code)
+                        if not ok or not state.full_segments:
+                            raise RuntimeError("Could not load default transcript.")
+
+                    except Exception as e:
+                        print(
+                            f"[fetch_transcript] Error listing/loading transcripts for "
+                            f"video_id={video_id}: {e!r}"
+                        )
                         fetch_status_label.text = (
-                            "Error fetching transcript: the video URL is invalid, "
-                            "unavailable, or has no transcript."
+                            "Error fetching transcript: the video has no accessible "
+                            "transcripts or is unavailable."
                         )
                         state.full_segments = []
                         reset_progress()
@@ -685,13 +812,38 @@ def main_page() -> None:
                         video_title_label.text = ""
                         thumbnail_image.set_source("")
                         state.video_url = None
-
                         return
 
-                    fetch_status_label.text = "Transcript fetched."
+                    fetch_status_label.text = (
+                        f"Transcript fetched in {transcript_language_select.value}."
+                    )
                     set_progress(1.0)
 
                     # Initialize preview with default range (0 to full length)
+                    update_preview()
+
+                async def apply_options() -> None:
+                    """
+                    Apply time range, display mode, and (if set) transcript language.
+                    We simply reload the transcript for the selected language each time.
+                    """
+                    desired_code = transcript_language_select.value
+                    video_url = state.video_url or ""
+                    video_id = extract_video_id(video_url)
+
+                    if desired_code and video_id:
+                        fetch_status_label.text = (
+                            f"Reloading transcript in {desired_code}..."
+                        )
+                        ok = await load_transcript_for_language(video_id, desired_code)
+                        if not ok or not state.full_segments:
+                            fetch_status_label.text = f"Could not load transcript for language '{desired_code}'."
+                            return
+                        fetch_status_label.text = (
+                            f"Transcript loaded in {desired_code}."
+                        )
+
+                    # Now apply time range + formatting to whatever segments we have
                     update_preview()
 
                 def copy_to_clipboard() -> None:
@@ -745,15 +897,20 @@ def main_page() -> None:
                         pdf.set_margins(15, 15, 15)
                         pdf.add_page()
 
-                        # Try to use Unicode TTF; fall back to Helvetica if not available
+                        # Best-effort CJK font for all languages
                         try:
-                            if FONT_PATH.is_file():
-                                pdf.add_font("NotoSans", "", str(FONT_PATH))
-                                pdf.set_font("NotoSans", size=11)
+                            if CJK_FONT_PATH.is_file():
+                                pdf.add_font("NotoSansCJK", "", str(CJK_FONT_PATH))
+                                pdf.set_font("NotoSansCJK", size=11)
                             else:
                                 pdf.set_font("Helvetica", size=11)
-                        except Exception:
-                            pdf.set_font("Helvetica", size=11)
+                        except Exception as e:
+                            print(f"[run_export] Failed to use CJK font: {e}")
+                            try:
+                                pdf.set_font("Helvetica", size=11)
+                            except Exception as e2:
+                                print(f"[run_export] Fallback font also failed: {e2}")
+                                pdf.set_font("Helvetica", size=11)
 
                         line_height = pdf.font_size * 1.5
                         effective_width = pdf.w - pdf.l_margin - pdf.r_margin
@@ -787,7 +944,7 @@ def main_page() -> None:
 
                 # ---------- wire up events ----------
                 fetch_button.on_click(fetch_transcript)
-                apply_button.on_click(lambda: update_preview())
+                apply_button.on_click(apply_options)
                 copy_button.on_click(copy_to_clipboard)
 
                 # Restore sensible defaults when time fields are cleared
