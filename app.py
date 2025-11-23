@@ -379,13 +379,49 @@ def main_page() -> None:
                         "Download PDF", color=YOUTUBE_RED, icon="picture_as_pdf"
                     ).props("unelevated rounded")
 
+                # Collapsible notes for export behavior + usage disclaimer
+                with ui.expansion(
+                    "Export notes and usage",
+                    icon="info",
+                    value=False,
+                ).props("dense expand-icon=keyboard_arrow_down").style(
+                    "margin-top: 6px;"
+                ):
+                    with ui.column().classes("gap-1 text-xs text-gray-700"):
+                        ui.label(
+                            "• TXT, DOCX, and CSV exports support all transcript languages "
+                            "that YouTube makes available for the video."
+                        )
+                        ui.label(
+                            "• PDF export uses a bundled CJK-capable font and is tested primarily with "
+                            "Latin, Cyrillic, Greek, and CJK scripts "
+                            "(Chinese Traditional/Simplified, Japanese, and Korean)."
+                        )
+                        ui.label(
+                            "• Other scripts may not render correctly in the PDF export."
+                        )
+
+                        ui.separator().props("inset").style("margin: 4px 0 4px 0;")
+
+                        ui.label(
+                            """
+                        This tool is intended for personal use. 
+                        Please respect YouTube’s Terms of Service and copyright. 
+                        Only download or use transcripts for videos you are allowed to use. 
+                        This project is not affiliated with or endorsed by YouTube or Google. 
+                        Transcript availability depends on YouTube and may vary by video.
+                        """
+                        ).style(
+                            "font-size: 0.72rem; color: #d32f2f; font-style: italic;"
+                        )
+
                 action_status_label = (
                     ui.label("")
                     .classes("text-xs text-gray-600")
                     .style("margin-top: 4px;")
                 )
 
-                # JS handler to actually copy the textarea content in the browser
+                # JS handler to copy the textarea content in the browser
                 copy_button.on(
                     "click",
                     js_handler=f"""
@@ -694,7 +730,7 @@ def main_page() -> None:
                         if state.video_length <= 0:
                             state.video_length = None
 
-                        # NEW: set default output name to the video title (sanitized)
+                        # set default output name to the video title (sanitized)
                         if state.video_title:
                             file_title_input.value = sanitize_filename(
                                 state.video_title

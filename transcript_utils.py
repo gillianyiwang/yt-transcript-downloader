@@ -22,19 +22,19 @@ class AppState:
     video_length: Optional[float] = None
     video_url: Optional[str] = None
 
-    # NEW: remember which transcript language is currently loaded
+    # remember which transcript language is currently loaded
     transcript_lang_code: Optional[str] = None
 
-    # NEW: simple in-memory cache: (video_id, lang_code) -> list[dict]
+    # simple in-memory cache: (video_id, lang_code) -> list[dict]
     transcript_cache: Dict[tuple, List[Dict]] = field(default_factory=dict)
 
-    # NEW: cache transcript lists per video so we don't call api.list(...) repeatedly
+    # cache transcript lists per video so we don't call api.list(...) repeatedly
     transcript_lists: Dict[str, object] = field(default_factory=dict)
 
-    # NEW: track last video id for "same URL" checks
+    # track last video id for "same URL" checks
     last_video_id: Optional[str] = None
 
-    # NEW: for debouncing fetch button
+    # for debouncing fetch button
     is_fetching: bool = False
 
 
