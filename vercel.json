@@ -1,6 +1,11 @@
 {
-  "buildCommand": "uv venv && uv pip install -r requirements.txt",
-  "framework": "python",
+  "functions": {
+    "api/index.py": {
+      "maxDuration": 60,
+      "memory": 1024,
+      "includeFiles": "**/*.{py,css,png,ttf,ttc}"
+    }
+  },
   "routes": [
     {
       "src": "/(.*)",

@@ -20,3 +20,13 @@ build
 .coverage
 *.log
 .vercel_build_output
+README.md
+LICENSE
+*.md
+.github
+tests
+test
+*.test.js
+*.spec.js
+*.test.py
+*.spec.py
