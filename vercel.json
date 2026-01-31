@@ -1,5 +1,5 @@
 {
-  "buildCommand": "pip install -r requirements.txt",
+  "buildCommand": "uv pip install -r requirements.txt",
   "framework": "python",
   "routes": [
     {
