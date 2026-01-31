@@ -1,14 +1,6 @@
 {
   "buildCommand": "uv venv && uv pip install -r requirements.txt",
   "framework": "python",
-  "env": {
-    "PYTHONUNBUFFERED": "1"
-  },
-  "functions": {
-    "api/index.py": {
-      "runtime": "python3.12"
-    }
-  },
   "routes": [
     {
       "src": "/(.*)",
