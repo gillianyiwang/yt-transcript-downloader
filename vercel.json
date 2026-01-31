@@ -3,7 +3,8 @@
     "api/index.py": {
       "maxDuration": 60,
       "memory": 1024,
-      "includeFiles": "**/*.{py,css,png,ttf,ttc}"
+      "includeFiles": "{api/**,styles/**,images/**,fonts/**,transcript_utils.py,app.py}",
+      "excludeFiles": "{**/__pycache__/**,**/*.pyc,**/*.pyo,**/tests/**,**/test/**,**/*.dist-info/**,**/.pytest_cache/**,**/examples/**,**/docs/**,**/*.egg-info/**}"
     }
   },
   "routes": [
