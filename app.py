@@ -389,6 +389,12 @@ def main_page() -> None:
                 ):
                     with ui.column().classes("gap-1 text-xs text-gray-700"):
                         ui.label(
+                            "• For videos with multiple transcript languages, you can select the "
+                            "desired language from the dropdown before applying options. "
+                            "However, for the Youtube title and description, only the default "
+                            "interface language is available."
+                        )
+                        ui.label(
                             "• TXT, DOCX, and CSV exports support all transcript languages "
                             "that YouTube makes available for the video."
                         )
