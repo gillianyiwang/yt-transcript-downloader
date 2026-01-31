@@ -30,3 +30,9 @@ test
 *.spec.js
 *.test.py
 *.spec.py
+fonts
+*.ttf
+*.ttc
+*.otf
+*.woff
+*.woff2

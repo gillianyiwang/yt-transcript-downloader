@@ -28,9 +28,7 @@ GLOBAL_CSS = Path("styles/global.css").read_text(encoding="utf-8")
 BASE_DIR = Path(__file__).resolve().parent
 ICON_PATH = BASE_DIR / "images" / "icon.png"
 
-# Directory for fonts; we will use a single CJK-capable font for PDFs
-FONT_DIR = BASE_DIR / "fonts"
-CJK_FONT_PATH = FONT_DIR / "NotoSansCJK-VF.ttf.ttc"
+# PDFs will use FPDF's built-in Helvetica font (no custom font to reduce deployment size)
 
 
 @ui.page("/")
@@ -399,12 +397,9 @@ def main_page() -> None:
                             "that YouTube makes available for the video."
                         )
                         ui.label(
-                            "• PDF export uses a bundled CJK-capable font and is tested primarily with "
-                            "Latin, Cyrillic, Greek, and CJK scripts "
-                            "(Chinese Traditional/Simplified, Japanese, and Korean)."
-                        )
-                        ui.label(
-                            "• Other scripts may not render correctly in the PDF export."
+                            "• PDF export uses FPDF's built-in Helvetica font and supports "
+                            "Latin characters only. For CJK (Chinese, Japanese, Korean) and other "
+                            "scripts, use TXT, DOCX, or CSV export instead."
                         )
 
                         ui.separator().props("inset").style("margin: 4px 0 4px 0;")
@@ -939,20 +934,8 @@ def main_page() -> None:
                         pdf.set_margins(15, 15, 15)
                         pdf.add_page()
 
-                        # Best-effort CJK font for all languages
-                        try:
-                            if CJK_FONT_PATH.is_file():
-                                pdf.add_font("NotoSansCJK", "", str(CJK_FONT_PATH))
-                                pdf.set_font("NotoSansCJK", size=11)
-                            else:
-                                pdf.set_font("Helvetica", size=11)
-                        except Exception as e:
-                            print(f"[run_export] Failed to use CJK font: {e}")
-                            try:
-                                pdf.set_font("Helvetica", size=11)
-                            except Exception as e2:
-                                print(f"[run_export] Fallback font also failed: {e2}")
-                                pdf.set_font("Helvetica", size=11)
+                        # Use FPDF's built-in Helvetica font (no custom font for smaller deployment)
+                        pdf.set_font("Helvetica", size=11)
 
                         line_height = pdf.font_size * 1.5
                         effective_width = pdf.w - pdf.l_margin - pdf.r_margin
