@@ -211,7 +211,7 @@ def build_filtered_text(
 def sanitize_filename(name: str) -> str:
     """
     Remove illegal filename characters across macOS/Windows/Linux:
-    \ / : * ? " < > |
+    \\ / : * ? " < > |
     Also collapse spaces to underscores.
     """
     # Strip illegal characters
