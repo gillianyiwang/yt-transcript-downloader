@@ -24,9 +24,18 @@ from transcript_utils import (
 )
 
 YOUTUBE_RED = "red-5"
-GLOBAL_CSS = Path("styles/global.css").read_text(encoding="utf-8")
 BASE_DIR = Path(__file__).resolve().parent
 ICON_PATH = BASE_DIR / "images" / "icon.png"
+
+# Load CSS lazily to avoid file read errors at import time in serverless environments
+def get_global_css() -> str:
+    """Load global CSS file."""
+    css_path = BASE_DIR / "styles" / "global.css"
+    try:
+        return css_path.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        # Fallback if CSS file not found in serverless environment
+        return ""
 
 # PDFs will use FPDF's built-in Helvetica font (no custom font to reduce deployment size)
 
@@ -35,7 +44,7 @@ ICON_PATH = BASE_DIR / "images" / "icon.png"
 def main_page() -> None:
     """Main NiceGUI page for the YouTube Transcript Downloader."""
     # page-scoped CSS (allowed with ui.page)
-    ui.add_css(GLOBAL_CSS)
+    ui.add_css(get_global_css())
 
     # Central state container
     state = AppState()
