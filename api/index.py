@@ -1,13 +1,17 @@
-"""WSGI entry point for Vercel serverless deployment of NiceGUI app."""
+"""ASGI entry point for Vercel serverless deployment of NiceGUI app."""
 
 import sys
 from pathlib import Path
 
+# Add parent directory to path so we can import our app module
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from nicegui import ui
-from nicegui.app import App
+# Import our app module to register the main_page with NiceGUI
+import app as our_app
 
-from app import main_page
+# Import NiceGUI's app (the FastAPI instance)
+from nicegui import app as nicegui_app
 
-app = App()
+# The ASGI app that Vercel will use
+# NiceGUI's `app` is the underlying FastAPI instance
+handler = nicegui_app
