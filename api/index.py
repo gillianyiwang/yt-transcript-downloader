@@ -6,10 +6,11 @@ from pathlib import Path
 # Add parent directory to path so we can import our main module
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-# Import the FastAPI app from main.py
-from main import app
-
-# Wrap FastAPI app with Mangum for serverless/Lambda compatibility
+# Import and wrap the FastAPI app with Mangum for serverless/Lambda compatibility
+from main import app as _app
 from mangum import Mangum
 
-handler = Mangum(app, lifespan="off")
+handler = Mangum(_app, lifespan="off")
+
+# Clean up namespace - only expose 'handler' to avoid Vercel's handler detection issues
+del _app, Mangum, sys, Path
