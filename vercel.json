@@ -1,11 +1,4 @@
 {
-  "functions": {
-    "api/**/*.py": {
-      "maxDuration": 60,
-      "includeFiles": "**",
-      "excludeFiles": "{**/test*/**,**/doc*/**,**/example*/**,**/*.dist-info/**,**/__pycache__/**,**/*.pyc,**/font*/**,**/*.ttf,**/*.ttc,**/pip/**,**/setuptools/**,**/pkg_resources/**,**/nodejs_wheel/**,**/pygments/**,**/reportlab/**}"
-    }
-  },
   "rewrites": [
     {
       "source": "/(.*)",
