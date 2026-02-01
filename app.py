@@ -6,8 +6,8 @@ from docx import Document
 from fpdf import FPDF
 from nicegui import ui
 from pathlib import Path
-from pytubefix import YouTube
 from youtube_transcript_api import YouTubeTranscriptApi
+from youtube_metadata import YouTubeMetadata
 
 import io
 
@@ -724,10 +724,10 @@ def main_page() -> None:
                     fetch_status_label.text = "Fetching video info..."
                     set_progress(0.3)
                     try:
-                        yt = YouTube(url)
+                        yt = YouTubeMetadata(url)
                         state.video_title = yt.title
                         state.video_description = yt.description
-                        state.video_length = float(getattr(yt, "length", None) or 0.0)
+                        state.video_length = yt.length or 0.0
                         if state.video_length <= 0:
                             state.video_length = None
 
@@ -744,7 +744,7 @@ def main_page() -> None:
                             state.video_title + " ⇱" or "Title unavailable"
                         )
 
-                        thumb_url = getattr(yt, "thumbnail_url", None)
+                        thumb_url = yt.thumbnail_url
                         if thumb_url:
                             thumbnail_image.set_source(thumb_url)
                         else:
