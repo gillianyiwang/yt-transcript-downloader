@@ -2,6 +2,8 @@
 
 A web application for extracting, trimming, and exporting YouTube video transcripts in multiple formats (TXT, CSV, DOCX, PDF).
 
+![YouTube Transcript Downloader Screenshot](./images/yt-transcript-downloader-screenshot.jpg)
+
 ## Features
 
 - Extract transcripts from any YouTube video with available captions
