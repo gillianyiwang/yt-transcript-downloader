@@ -1,16 +1,15 @@
 {
   "functions": {
-    "api/index.py": {
+    "api/**/*.py": {
       "maxDuration": 60,
-      "memory": 1024,
-      "includeFiles": "{api/**,styles/**,images/**,transcript_utils.py,youtube_metadata.py,app.py}",
-      "excludeFiles": "{**/__pycache__/**,**/*.pyc,**/test*/**,**/*.dist-info/**,**/example*/**,**/doc*/**,**/*.egg-info/**,**/font*/**,**/*.ttf,**/*.ttc,**/*.md,**/pip/**,**/setuptools/**,**/pkg_resources/**,**/nodejs_wheel/**,**/pygments/**,**/reportlab/**}"
+      "includeFiles": "**",
+      "excludeFiles": "{**/test*/**,**/doc*/**,**/example*/**,**/*.dist-info/**,**/__pycache__/**,**/*.pyc,**/font*/**,**/*.ttf,**/*.ttc,**/pip/**,**/setuptools/**,**/pkg_resources/**,**/nodejs_wheel/**,**/pygments/**,**/reportlab/**}"
     }
   },
-  "routes": [
+  "rewrites": [
     {
-      "src": "/(.*)",
-      "dest": "/api/index.py"
+      "source": "/(.*)",
+      "destination": "/api/index"
     }
   ]
 }
