@@ -14,4 +14,6 @@ from nicegui import app as nicegui_app
 
 # The ASGI app that Vercel will use
 # NiceGUI's `app` is the underlying FastAPI instance
-handler = nicegui_app
+# Export as both 'app' and 'handler' for maximum compatibility
+app = nicegui_app
+handler = app
