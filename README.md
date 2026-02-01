@@ -2,7 +2,7 @@
 
 A web application for extracting, trimming, and exporting YouTube video transcripts in multiple formats (TXT, CSV, DOCX, PDF).
 
-![YouTube Transcript Downloader Screenshot](./images/yt-transcript-downloader-screenshot.jpg)
+![YouTube Transcript Downloader Screenshot](./images/yt-transcript-downloader-screenshot.png)
 
 ## Features
 
@@ -67,7 +67,8 @@ This project includes Vercel deployment configuration files ([vercel.json](verce
 **YouTube blocks requests from cloud provider IPs (AWS, Google Cloud, Azure, Vercel, etc.)** to prevent bot scraping. This means:
 
 - ✅ The app **works perfectly when run locally**
-- ❌ The app **will fail on Vercel** with "YouTube is blocking requests from your IP" errors in the logs
+
+- ❌ The app **will fail on Vercel** with "Error fetching transcript: the video has no accessible transcripts or is unavailable." errors
 
 ### Why Keep Vercel Config?
 
