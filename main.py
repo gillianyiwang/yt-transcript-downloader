@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import io
+import os
 from pathlib import Path
 from typing import Optional
 
@@ -27,14 +28,16 @@ from transcript_utils import (
 )
 
 BASE_DIR = Path(__file__).resolve().parent
-ICON_PATH = BASE_DIR / "images" / "icon.png"
 
 # Initialize FastAPI app
 app = FastAPI(title="YouTube Transcript Downloader")
 
-# Mount static files
-app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
-app.mount("/images", StaticFiles(directory=str(BASE_DIR / "images")), name="images")
+# Mount static files only when running locally (not on Vercel)
+# On Vercel, static files are served from the 'public' directory automatically
+IS_VERCEL = os.environ.get("VERCEL") == "1"
+if not IS_VERCEL:
+    app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
+    app.mount("/images", StaticFiles(directory=str(BASE_DIR / "images")), name="images")
 
 # Setup Jinja2 templates
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))

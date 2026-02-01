@@ -9,5 +9,6 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 # Import the FastAPI app from main.py
 from main import app
 
-# Export for Vercel
+# Export the app directly for Vercel (Vercel's Python runtime handles ASGI apps)
+# Both 'app' and 'handler' are exported for compatibility
 handler = app

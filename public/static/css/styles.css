@@ -1,0 +1,578 @@
+/* ========================================
+   YouTube Transcript Downloader Styles
+   ======================================== */
+
+/* ---- Reset & Base ---- */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: radial-gradient(circle at top center, #fee2e2 0, #f9fafb 45%, #e5e7eb 100%);
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+    background-color: #f9fafb;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+    line-height: 1.5;
+    color: #1f2937;
+}
+
+/* ---- Layout ---- */
+.app-shell {
+    min-height: 100vh;
+    padding: 32px 16px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+.app-inner {
+    width: 100%;
+    max-width: 960px;
+}
+
+/* ---- Header ---- */
+.header-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.header-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 5px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+.header-text {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+}
+
+.header-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #111827;
+}
+
+.header-subtitle {
+    font-size: 0.875rem;
+    color: #6b7280;
+}
+
+/* ---- Main Card ---- */
+.main-card {
+    width: 100%;
+    max-width: 960px;
+    border-radius: 18px;
+    background: white;
+    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.18);
+    padding: 20px 24px 24px 24px;
+}
+
+/* ---- Sections ---- */
+.section-label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #1f2937;
+    margin-bottom: 4px;
+}
+
+/* ---- URL Input ---- */
+.url-input {
+    width: 100%;
+    min-height: 44px;
+    padding: 10px 12px;
+    margin-top: 4px;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.url-input:hover {
+    border-color: #fca5a5;
+}
+
+.url-input:focus {
+    border-color: #e57373;
+}
+
+/* ---- Fetch Section ---- */
+.fetch-section {
+    margin-top: 10px;
+    margin-bottom: 8px;
+}
+
+.fetch-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+/* ---- Buttons ---- */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 20px;
+    border: none;
+    border-radius: 999px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: none;
+}
+
+.btn .material-symbols-outlined {
+    font-size: 18px;
+}
+
+.btn-primary {
+    background-color: #ef5350;
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #e53935;
+}
+
+.btn-primary .material-symbols-outlined {
+    color: white;
+}
+
+.btn-outline {
+    background-color: transparent;
+    color: #ef5350;
+    border: 1px solid #fecaca;
+}
+
+.btn-outline:hover {
+    background-color: #fef2f2;
+}
+
+.btn-outline .material-symbols-outlined {
+    color: #e57373;
+}
+
+/* ---- Progress Bar ---- */
+.progress-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.progress-bar {
+    position: relative;
+    width: 260px;
+    height: 30px;
+    background-color: #f3f4f6;
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 0%;
+    background-color: #ef5350;
+    background-image: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 10px,
+        rgba(255, 255, 255, 0.1) 10px,
+        rgba(255, 255, 255, 0.1) 20px
+    );
+    transition: width 0.3s ease;
+}
+
+.progress-label {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: white;
+}
+
+/* ---- Status Text ---- */
+.status-text {
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin-top: 4px;
+}
+
+.error-text {
+    font-size: 0.8rem;
+    color: #dc2626;
+    margin-top: 4px;
+}
+
+.hint-text {
+    font-size: 0.8rem;
+    color: #6b7280;
+    margin-top: 2px;
+    margin-bottom: 6px;
+}
+
+/* ---- Video Info ---- */
+.video-info-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-top: 8px;
+    margin-bottom: 4px;
+}
+
+.video-thumbnail {
+    width: 120px;
+    height: 68px;
+    border-radius: 12px;
+    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.25);
+    object-fit: cover;
+    cursor: pointer;
+}
+
+.video-title {
+    font-size: 0.875rem;
+    color: #2563eb;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.video-title:hover {
+    text-decoration: underline;
+}
+
+/* ---- Separator ---- */
+.separator {
+    height: 1px;
+    background-color: #e5e7eb;
+    margin: 12px 0 16px 0;
+}
+
+.separator-small {
+    height: 1px;
+    background-color: #e5e7eb;
+    margin: 4px 0;
+}
+
+/* ---- Expansion Panel ---- */
+.expansion-panel {
+    background: #f9fafb;
+    border-radius: 12px;
+    margin-top: 6px;
+}
+
+.expansion-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    cursor: pointer;
+    user-select: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.expansion-header .material-symbols-outlined {
+    font-size: 20px;
+    color: #6b7280;
+}
+
+.expansion-content {
+    padding: 12px;
+}
+
+/* ---- Time Inputs ---- */
+.time-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-top: 4px;
+}
+
+.time-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.time-label {
+    font-size: 0.75rem;
+    color: #374151;
+}
+
+.time-input-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.time-input {
+    width: 140px;
+    min-height: 38px;
+    padding: 6px 10px;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.time-input:hover {
+    border-color: #fca5a5;
+}
+
+.time-input:focus {
+    border-color: #e57373;
+}
+
+/* ---- Time Arrows ---- */
+.time-arrows {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-left: -6px;
+    margin-top: -12px;
+}
+
+.arrow-btn {
+    width: 16px;
+    height: 14px;
+    min-height: 14px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.arrow-btn .material-symbols-outlined {
+    font-size: 16px;
+    color: #6e6e6e;
+}
+
+.arrow-btn:hover .material-symbols-outlined {
+    color: #374151;
+}
+
+/* ---- Options Row ---- */
+.options-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-top: 10px;
+}
+
+/* ---- Select Field ---- */
+.select-field {
+    width: 360px;
+    min-height: 38px;
+    padding: 8px 12px;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.2s;
+    background-color: white;
+}
+
+.select-field:hover {
+    border-color: #fca5a5;
+}
+
+.select-field:focus {
+    border-color: #e57373;
+}
+
+.language-select {
+    width: 260px;
+    margin-top: 10px;
+}
+
+/* ---- Checkbox Group ---- */
+.checkbox-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-left: 12px;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+.checkbox-label input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: #e57373;
+}
+
+/* ---- Text Field ---- */
+.text-field {
+    width: 260px;
+    min-height: 38px;
+    padding: 8px 12px;
+    margin-top: 10px;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.text-field:hover {
+    border-color: #fca5a5;
+}
+
+.text-field:focus {
+    border-color: #e57373;
+}
+
+/* ---- Apply Button Row ---- */
+.apply-button-row {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 10px;
+}
+
+/* ---- Counts Header ---- */
+.counts-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.counts-text {
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
+/* ---- Preview Textarea ---- */
+.preview-textarea {
+    width: 100%;
+    height: 260px;
+    margin-top: 6px;
+    padding: 12px;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    font-size: 0.875rem;
+    font-family: inherit;
+    resize: vertical;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.preview-textarea:hover {
+    border-color: #fca5a5;
+}
+
+.preview-textarea:focus {
+    border-color: #e57373;
+}
+
+.preview-textarea::-webkit-scrollbar {
+    width: 6px;
+}
+
+.preview-textarea::-webkit-scrollbar-thumb {
+    background-color: #fecaca;
+    border-radius: 999px;
+}
+
+.preview-textarea::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+/* ---- Export Row ---- */
+.export-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 6px;
+}
+
+/* ---- Notes Content ---- */
+.notes-content {
+    font-size: 0.75rem;
+    color: #374151;
+}
+
+.notes-content p {
+    margin-bottom: 8px;
+}
+
+.disclaimer {
+    font-size: 0.72rem;
+    color: #dc2626;
+    font-style: italic;
+}
+
+/* ---- Mobile Responsive ---- */
+@media (max-width: 768px) {
+    .fetch-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+    }
+
+    .progress-bar {
+        width: 100%;
+    }
+
+    .export-row .btn {
+        flex: 1 1 calc(50% - 8px);
+    }
+
+    .time-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+    }
+
+    .time-input {
+        width: 100% !important;
+    }
+
+    .select-field,
+    .language-select,
+    .text-field {
+        width: 100% !important;
+    }
+
+    .options-row {
+        flex-direction: column;
+    }
+
+    .checkbox-group {
+        margin-left: 0;
+    }
+}
