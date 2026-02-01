@@ -209,3 +209,10 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Project-specific
+# Test files (keep tests local, don't commit to repo)
+test_*.py
+run_tests.sh
+TESTING.md
+cleanup_for_github.sh

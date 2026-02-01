@@ -2,9 +2,11 @@
 
 import re
 import json
+import ssl
 from typing import Optional
 import urllib.request
 import urllib.parse
+import certifi
 
 
 class YouTubeMetadata:
@@ -33,7 +35,10 @@ class YouTubeMetadata:
             }
             req = urllib.request.Request(watch_url, headers=headers)
 
-            with urllib.request.urlopen(req, timeout=10) as response:
+            # Create SSL context with certifi's CA bundle for proper certificate verification
+            ssl_context = ssl.create_default_context(cafile=certifi.where())
+
+            with urllib.request.urlopen(req, timeout=10, context=ssl_context) as response:
                 html = response.read().decode('utf-8')
 
             # Extract metadata from ytInitialPlayerResponse JSON
