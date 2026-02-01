@@ -121,10 +121,16 @@ yt-transcript-downloader/
 │   └── js/
 │       └── app.js         # Frontend logic (local dev)
 ├── images/
-│   └── icon.png           # App icon (local dev)
+│   ├── icon.png                              # App icon (local dev)
+│   └── yt-transcript-downloader-screenshot.png  # README screenshot
 ├── public/                # Static files for Vercel
 │   ├── static/
+│   │   ├── css/
+│   │   │   └── styles.css
+│   │   └── js/
+│   │       └── app.js
 │   └── images/
+│       └── icon.png
 ├── api/
 │   └── index.py          # Vercel serverless entry point
 └── vercel.json           # Vercel deployment config
